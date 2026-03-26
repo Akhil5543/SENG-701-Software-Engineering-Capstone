@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Software Design Tool — SENG 701 Capstone
 
 A repository, demonstration, and evaluation platform for software design and architecture methods and tools.
@@ -146,3 +147,23 @@ chore: add seed data for microservices architecture
 ```
 
 Commit frequently — at least once per working session.
+=======
+
+# SENG 701 – Software Engineering Capstone
+
+This repository contains work for the SENG 701 Software Engineering Capstone course.
+
+## Project Status
+The capstone project proposal is currently under review. The final project scope and sponsor will be confirmed upon proposal approval.
+
+## Planned Focus
+The project will involve the design and development of a software-based system that demonstrates core software engineering principles, including requirements analysis, system design, implementation, and evaluation.
+
+## Capstone Phases
+- Proposal
+- Alpha
+- Beta
+- Final
+
+This repository will be updated throughout the capstone lifecycle as the project evolves.
+>>>>>>> 4c724c0abae7b446b6bd6a07dc53493e0657a1a7
