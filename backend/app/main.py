@@ -55,6 +55,9 @@ def get_stats():
 
 @app.on_event("startup")
 async def on_startup():
-    """Auto-seed database on startup if empty."""
-    from app.seed import seed
-    seed()
+    try:
+        Base.metadata.create_all(bind=engine)
+        from app.seed import seed
+        seed()
+    except Exception as e:
+        print(f"Startup warning: {e}")
