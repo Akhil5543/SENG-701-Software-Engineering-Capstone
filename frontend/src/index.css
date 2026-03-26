@@ -1,0 +1,57 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background-color: #060b1a;
+    color: #e2e8f0;
+  }
+
+  h1, h2, h3 {
+    font-family: 'DM Serif Display', serif;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-navy-800 border border-navy-600 rounded-xl p-5 hover:border-accent-500 transition-all duration-200;
+  }
+
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .btn-primary {
+    @apply bg-accent-600 hover:bg-accent-500 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-150;
+  }
+
+  .btn-ghost {
+    @apply text-slate-400 hover:text-white hover:bg-navy-700 px-3 py-2 rounded-lg transition-colors duration-150;
+  }
+
+  .input {
+    @apply bg-navy-700 border border-navy-600 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-accent-500 focus:border-accent-500;
+  }
+
+  .section-title {
+    @apply font-display text-2xl text-white mb-1;
+  }
+}
+
+/* Mermaid diagram container */
+.mermaid-wrapper svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #0a1228; }
+::-webkit-scrollbar-thumb { background: #2E4D8F; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #3b82f6; }
+
+/* Star rating */
+.star-filled { color: #f59e0b; }
+.star-empty { color: #374151; }
