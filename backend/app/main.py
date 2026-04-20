@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.database import engine
 from app.models.models import Base
-from app.api import methods, architectures, tools, evaluations
+from app.api import methods, architectures, tools, evaluations, export
 from app.schemas.schemas import StatsOut
 from sqlalchemy.orm import Session
 from app.core.database import SessionLocal
@@ -13,15 +13,15 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="Software Design Tool API",
-    description="Repository and evaluation platform for software design and architecture methods and tools.",
-    version="1.0.0",
+    description="Repository and evaluation platform for software design and architecture methods and tools. Beta v2.0",
+    version="2.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
 )
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000", "*"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -32,11 +32,17 @@ app.include_router(methods.router, prefix="/api/v1")
 app.include_router(architectures.router, prefix="/api/v1")
 app.include_router(tools.router, prefix="/api/v1")
 app.include_router(evaluations.router, prefix="/api/v1")
+app.include_router(export.router, prefix="/api/v1")
 
 
 @app.get("/", tags=["Health"])
 def root():
-    return {"message": "Software Design Tool API", "version": "1.0.0", "docs": "/docs"}
+    return {
+        "message": "Software Design Tool API",
+        "version": "2.0.0",
+        "docs": "/docs",
+        "phase": "Beta"
+    }
 
 
 @app.get("/api/v1/stats", response_model=StatsOut, tags=["Stats"])
