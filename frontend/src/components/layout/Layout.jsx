@@ -1,80 +1,94 @@
-import { NavLink, useLocation } from 'react-router-dom'
-import { LayoutDashboard, BookOpen, Building2, Wrench, GitCompare, Menu, X } from 'lucide-react'
-import { useState } from 'react'
-import clsx from 'clsx'
+import { useState } from "react";
+import { NavLink, useLocation } from "react-router-dom";
 
 const NAV = [
-  { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/methods', icon: BookOpen, label: 'Design Methods' },
-  { to: '/architectures', icon: Building2, label: 'Architectures' },
-  { to: '/tools', icon: Wrench, label: 'Tools' },
-  { to: '/compare', icon: GitCompare, label: 'Compare' },
-]
+  { to: "/", label: "Dashboard", icon: "📊", exact: true },
+  { to: "/methods", label: "Design Methods", icon: "📐" },
+  { to: "/architectures", label: "Architectures", icon: "🏗️" },
+  { to: "/tools", label: "Tools", icon: "🔧" },
+  { to: "/compare", label: "Compare", icon: "⚖️" },
+  { to: "/export", label: "Export Data", icon: "📥" },
+  { to: "/admin", label: "Admin", icon: "⚙️" },
+];
+
+function NavItem({ to, label, icon, exact }) {
+  return (
+    <NavLink
+      to={to}
+      end={exact}
+      className={({ isActive }) =>
+        `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+          isActive
+            ? "bg-blue-600 text-white"
+            : "text-gray-400 hover:text-white hover:bg-gray-700"
+        }`
+      }
+    >
+      <span className="text-base">{icon}</span>
+      <span>{label}</span>
+    </NavLink>
+  );
+}
 
 export default function Layout({ children }) {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen bg-navy-900">
-      {/* Sidebar */}
-      <aside className={clsx(
-        'fixed inset-y-0 left-0 z-40 w-60 bg-navy-800 border-r border-navy-600 flex flex-col transition-transform duration-200',
-        open ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-      )}>
-        {/* Logo */}
-        <div className="flex items-center gap-3 px-5 py-5 border-b border-navy-600">
-          <div className="w-8 h-8 rounded-lg bg-accent-600 flex items-center justify-center text-white font-bold text-sm">SD</div>
-          <div>
-            <div className="font-display text-white text-sm leading-tight">Software Design</div>
-            <div className="text-slate-500 text-xs">Tool Platform</div>
-          </div>
+    <div className="min-h-screen bg-gray-900 flex">
+      {/* Sidebar desktop */}
+      <aside className="hidden md:flex flex-col w-56 bg-gray-800 border-r border-gray-700 p-4 fixed h-full">
+        <div className="mb-6 px-1">
+          <h1 className="text-white font-bold text-base leading-tight">SW Design Tool</h1>
+          <p className="text-gray-500 text-xs mt-0.5">UMBC SENG 701 — Beta</p>
         </div>
-
-        {/* Nav */}
-        <nav className="flex-1 px-3 py-4 space-y-1">
-          {NAV.map(({ to, icon: Icon, label }) => (
-            <NavLink
-              key={to}
-              to={to}
-              end={to === '/'}
-              onClick={() => setOpen(false)}
-              className={({ isActive }) => clsx(
-                'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150',
-                isActive
-                  ? 'bg-accent-600 text-white'
-                  : 'text-slate-400 hover:text-white hover:bg-navy-700'
-              )}
-            >
-              <Icon size={17} />
-              {label}
-            </NavLink>
+        <nav className="flex flex-col gap-1 flex-1">
+          {NAV.map((n) => (
+            <NavItem key={n.to} {...n} />
           ))}
         </nav>
-
-        {/* Footer */}
-        <div className="px-5 py-4 border-t border-navy-600">
-          <div className="text-xs text-slate-500">SENG 701 Capstone</div>
-          <div className="text-xs text-slate-600">UMBC · Spring 2026</div>
+        <div className="pt-4 border-t border-gray-700">
+          <a
+            href="https://swdesign-backend.onrender.com/docs"
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center gap-2 px-3 py-2 text-xs text-gray-500 hover:text-gray-300 rounded-lg hover:bg-gray-700"
+          >
+            <span>📖</span> API Docs
+          </a>
+          <a
+            href="https://github.com/Akhil5543/SENG-701-Software-Engineering-Capstone"
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center gap-2 px-3 py-2 text-xs text-gray-500 hover:text-gray-300 rounded-lg hover:bg-gray-700"
+          >
+            <span>🐙</span> GitHub
+          </a>
         </div>
       </aside>
 
-      {/* Mobile overlay */}
-      {open && <div className="fixed inset-0 z-30 bg-black/50 lg:hidden" onClick={() => setOpen(false)} />}
+      {/* Mobile header */}
+      <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-gray-800 border-b border-gray-700 px-4 py-3 flex items-center justify-between">
+        <h1 className="text-white font-bold text-sm">SW Design Tool</h1>
+        <button onClick={() => setOpen(!open)} className="text-gray-400 hover:text-white text-xl">
+          {open ? "✕" : "☰"}
+        </button>
+      </div>
+
+      {/* Mobile nav */}
+      {open && (
+        <div className="md:hidden fixed top-12 left-0 right-0 z-40 bg-gray-800 border-b border-gray-700 p-4">
+          <nav className="flex flex-col gap-1">
+            {NAV.map((n) => (
+              <NavItem key={n.to} {...n} />
+            ))}
+          </nav>
+        </div>
+      )}
 
       {/* Main content */}
-      <div className="flex-1 lg:ml-60 flex flex-col min-h-screen">
-        {/* Top bar (mobile) */}
-        <header className="lg:hidden flex items-center px-4 py-3 bg-navy-800 border-b border-navy-600">
-          <button onClick={() => setOpen(true)} className="text-slate-400 hover:text-white mr-3">
-            <Menu size={20} />
-          </button>
-          <span className="font-display text-white text-sm">Software Design Tool</span>
-        </header>
-
-        <main className="flex-1 p-6 max-w-7xl w-full mx-auto">
-          {children}
-        </main>
-      </div>
+      <main className="flex-1 md:ml-56 p-6 mt-0 md:mt-0 pt-16 md:pt-6 overflow-auto">
+        {children}
+      </main>
     </div>
-  )
+  );
 }

@@ -8,7 +8,7 @@ services:
     environment:
       POSTGRES_USER: swdesign
       POSTGRES_PASSWORD: swdesign_pass
-      POSTGRES_DB: swdesign_db
+      POSTGRES_DB: swdesign
     ports:
       - "5432:5432"
     volumes:
@@ -26,7 +26,7 @@ services:
     container_name: swdesign_backend
     restart: unless-stopped
     environment:
-      DATABASE_URL: postgresql://swdesign:swdesign_pass@db:5432/swdesign_db
+      DATABASE_URL: postgresql://swdesign:swdesign_pass@db:5432/swdesign
       SECRET_KEY: dev-secret-key-change-in-production
       ENVIRONMENT: development
     ports:
