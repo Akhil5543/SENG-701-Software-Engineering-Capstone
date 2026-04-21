@@ -43,3 +43,9 @@ export const statsApi = {
 }
 
 export default api
+
+// ── Convenience fetch helpers (used by ExportPage, ToolComparePage) ──────────
+export const fetchMethods = () => methodsApi.list().then(r => r.data)
+export const fetchArchitectures = () => architecturesApi.list().then(r => r.data)
+export const fetchTools = () => toolsApi.list().then(r => r.data)
+export const fetchEvaluations = () => evaluationsApi.list().then(r => r.data)

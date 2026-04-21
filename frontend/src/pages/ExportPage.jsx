@@ -1,132 +1,289 @@
+// ExportPage.jsx — replace frontend/src/pages/ExportPage.jsx
+// Adds PDF export for all 4 catalog sections + a full platform report
+
 import { useState } from "react";
-import axios from "axios";
+import { useQuery } from "@tanstack/react-query";
+import { fetchMethods, fetchArchitectures, fetchTools, fetchEvaluations } from "../utils/api";
+import {
+  exportMethodsPDF,
+  exportArchitecturesPDF,
+  exportToolsPDF,
+  exportEvaluationsPDF,
+  exportFullReportPDF,
+} from "../utils/pdfExport";
 
-const API = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const API = import.meta.env.VITE_API_URL || "https://swdesign-backend.onrender.com";
 
-const EXPORTS = [
-  {
-    category: "Design Methods",
-    icon: "📐",
-    items: [
-      { label: "Methods — JSON", url: "/api/v1/export/methods/json", filename: "design_methods.json", type: "json" },
-      { label: "Methods — CSV", url: "/api/v1/export/methods/csv", filename: "design_methods.csv", type: "csv" },
-    ],
-  },
-  {
-    category: "Architecture Styles",
-    icon: "🏗️",
-    items: [
-      { label: "Architectures — JSON", url: "/api/v1/export/architectures/json", filename: "architectures.json", type: "json" },
-      { label: "Architectures — CSV", url: "/api/v1/export/architectures/csv", filename: "architectures.csv", type: "csv" },
-    ],
-  },
-  {
-    category: "Tools Catalog",
-    icon: "🔧",
-    items: [
-      { label: "Tools — JSON", url: "/api/v1/export/tools/json", filename: "tools.json", type: "json" },
-      { label: "Tools — CSV", url: "/api/v1/export/tools/csv", filename: "tools.csv", type: "csv" },
-    ],
-  },
-  {
-    category: "Evaluations",
-    icon: "⭐",
-    items: [
-      { label: "Evaluations — JSON", url: "/api/v1/export/evaluations/json", filename: "evaluations.json", type: "json" },
-      { label: "Evaluations — CSV", url: "/api/v1/export/evaluations/csv", filename: "evaluations.csv", type: "csv" },
-    ],
-  },
-];
+// ── Download helpers (existing JSON/CSV logic) ───────────────────────────────
+async function downloadJSON(endpoint, filename) {
+  const res = await fetch(`${API}${endpoint}`);
+  const data = await res.json();
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
-function ExportCard({ category, icon, items }) {
-  const [loading, setLoading] = useState({});
-  const [error, setError] = useState("");
+async function downloadCSV(endpoint, filename) {
+  const res = await fetch(`${API}${endpoint}`);
+  const items = await res.json();
+  if (!items.length) return;
+  const headers = Object.keys(items[0]);
+  const rows = items.map((item) =>
+    headers.map((h) => {
+      const v = item[h];
+      const str = Array.isArray(v) ? v.join("|") : String(v ?? "");
+      return `"${str.replace(/"/g, '""')}"`;
+    }).join(",")
+  );
+  const csv = [headers.join(","), ...rows].join("\n");
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
-  const download = async (item) => {
-    setLoading((l) => ({ ...l, [item.url]: true }));
-    setError("");
-    try {
-      const res = await axios.get(`${API}${item.url}`, { responseType: "blob" });
-      const blob = new Blob([res.data]);
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = item.filename;
-      link.click();
-      URL.revokeObjectURL(link.href);
-    } catch (e) {
-      setError("Download failed. Please try again.");
-    } finally {
-      setLoading((l) => ({ ...l, [item.url]: false }));
-    }
+// ── Single download button ───────────────────────────────────────────────────
+function DownloadButton({ label, icon, onClick, loading, variant = "default" }) {
+  const base =
+    "flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed w-full";
+  const styles = {
+    default: "bg-slate-700 hover:bg-slate-600 text-slate-200",
+    pdf: "bg-slate-700 hover:bg-slate-600 text-slate-200",
+    full: "bg-blue-600 hover:bg-blue-500 text-white",
   };
+  return (
+    <button className={`${base} ${styles[variant]}`} onClick={onClick} disabled={loading}>
+      {loading ? (
+        <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+        </svg>
+      ) : (
+        <span>{icon}</span>
+      )}
+      {label}
+    </button>
+  );
+}
+
+// ── Section card ─────────────────────────────────────────────────────────────
+function ExportCard({ title, icon, color, description, jsonEndpoint, csvEndpoint, onPDF, pdfLoading }) {
+  const [jsonLoading, setJsonLoading] = useState(false);
+  const [csvLoading, setCsvLoading] = useState(false);
 
   return (
-    <div className="bg-gray-800 rounded-xl border border-gray-700 p-5">
-      <div className="flex items-center gap-2 mb-4">
-        <span className="text-2xl">{icon}</span>
-        <h3 className="text-white font-semibold">{category}</h3>
+    <div className="bg-slate-800/50 border border-slate-700 rounded-xl overflow-hidden">
+      {/* Card header */}
+      <div className="px-5 py-4 border-b border-slate-700 flex items-center gap-3">
+        <div
+          className="w-9 h-9 rounded-lg flex items-center justify-center text-lg"
+          style={{ backgroundColor: color + "22", border: `1px solid ${color}44` }}
+        >
+          {icon}
+        </div>
+        <div>
+          <h3 className="text-white font-semibold text-sm">{title}</h3>
+          <p className="text-slate-400 text-xs mt-0.5">{description}</p>
+        </div>
       </div>
-      <div className="flex flex-col gap-2">
-        {items.map((item) => (
-          <button
-            key={item.url}
-            onClick={() => download(item)}
-            disabled={loading[item.url]}
-            className="flex items-center justify-between w-full bg-gray-700 hover:bg-gray-600 disabled:opacity-50 rounded-lg px-4 py-3 text-sm text-gray-200 transition-colors"
-          >
-            <span className="flex items-center gap-2">
-              <span className="text-lg">{item.type === "json" ? "📄" : "📊"}</span>
-              {item.label}
-            </span>
-            <span className="flex items-center gap-1 text-blue-400">
-              {loading[item.url] ? (
-                <span className="animate-spin">⏳</span>
-              ) : (
-                <>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                  </svg>
-                  Download
-                </>
-              )}
-            </span>
-          </button>
-        ))}
+
+      {/* Download buttons */}
+      <div className="px-5 py-4 space-y-2">
+        {/* JSON */}
+        <DownloadButton
+          label={`${title} — JSON`}
+          icon="📄"
+          loading={jsonLoading}
+          onClick={async () => {
+            setJsonLoading(true);
+            try { await downloadJSON(jsonEndpoint, `${title.toLowerCase().replace(/\s/g, "_")}.json`); }
+            finally { setJsonLoading(false); }
+          }}
+        />
+        {/* CSV */}
+        <DownloadButton
+          label={`${title} — CSV`}
+          icon="📊"
+          loading={csvLoading}
+          onClick={async () => {
+            setCsvLoading(true);
+            try { await downloadCSV(csvEndpoint, `${title.toLowerCase().replace(/\s/g, "_")}.csv`); }
+            finally { setCsvLoading(false); }
+          }}
+        />
+        {/* PDF */}
+        <DownloadButton
+          label={`${title} — PDF Report`}
+          icon="📋"
+          variant="pdf"
+          loading={pdfLoading}
+          onClick={onPDF}
+        />
       </div>
-      {error && <p className="text-red-400 text-xs mt-2">{error}</p>}
     </div>
   );
 }
 
+// ── Main Page ─────────────────────────────────────────────────────────────────
 export default function ExportPage() {
+  const [pdfLoading, setPdfLoading] = useState({});
+  const [fullLoading, setFullLoading] = useState(false);
+
+  const { data: methods = [] } = useQuery({ queryKey: ["methods"], queryFn: () => fetchMethods() });
+  const { data: architectures = [] } = useQuery({ queryKey: ["architectures"], queryFn: () => fetchArchitectures() });
+  const { data: tools = [] } = useQuery({ queryKey: ["tools"], queryFn: () => fetchTools() });
+  const { data: evaluations = [] } = useQuery({ queryKey: ["evaluations"], queryFn: () => fetchEvaluations() });
+
+  const handlePDF = (key, fn) => async () => {
+    setPdfLoading((p) => ({ ...p, [key]: true }));
+    try { await fn(); }
+    finally { setPdfLoading((p) => ({ ...p, [key]: false })); }
+  };
+
+  const handleFullReport = async () => {
+    setFullLoading(true);
+    try {
+      await exportFullReportPDF({ methods, architectures, tools, evaluations });
+    } finally {
+      setFullLoading(false);
+    }
+  };
+
+  const sections = [
+    {
+      key: "methods",
+      title: "Design Methods",
+      icon: "📐",
+      color: "#3b82f6",
+      description: `${methods.length} entries — UML, ERD, DFD, Design Patterns`,
+      jsonEndpoint: "/api/v1/methods/",
+      csvEndpoint: "/api/v1/methods/",
+      onPDF: handlePDF("methods", () => exportMethodsPDF(methods)),
+    },
+    {
+      key: "architectures",
+      title: "Architecture Styles",
+      icon: "🏗️",
+      color: "#f59e0b",
+      description: `${architectures.length} entries — Layered, Microservices, Event-Driven`,
+      jsonEndpoint: "/api/v1/architectures/",
+      csvEndpoint: "/api/v1/architectures/",
+      onPDF: handlePDF("architectures", () => exportArchitecturesPDF(architectures)),
+    },
+    {
+      key: "tools",
+      title: "Tools Catalog",
+      icon: "🔧",
+      color: "#10b981",
+      description: `${tools.length} entries — Visual Paradigm, Mermaid.js, draw.io`,
+      jsonEndpoint: "/api/v1/tools/",
+      csvEndpoint: "/api/v1/tools/",
+      onPDF: handlePDF("tools", () => exportToolsPDF(tools)),
+    },
+    {
+      key: "evaluations",
+      title: "Evaluations",
+      icon: "⭐",
+      color: "#f97316",
+      description: `${evaluations.length} community evaluation records`,
+      jsonEndpoint: "/api/v1/evaluations/",
+      csvEndpoint: "/api/v1/evaluations/",
+      onPDF: handlePDF("evaluations", () => exportEvaluationsPDF(evaluations)),
+    },
+  ];
+
   return (
-    <div className="max-w-3xl mx-auto">
+    <div className="p-6 max-w-5xl mx-auto">
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-white mb-1">Export Data</h1>
-        <p className="text-gray-400 text-sm">
-          Download the full catalog and evaluation data in JSON or CSV format for offline analysis, research, or integration with other tools.
+        <p className="text-slate-400 text-sm">
+          Download the full catalog and evaluation data in JSON, CSV, or PDF format for offline
+          analysis, research, or integration with other tools.
         </p>
       </div>
 
-      {/* Export cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        {EXPORTS.map((group) => (
-          <ExportCard key={group.category} {...group} />
+      {/* Full report banner */}
+      <div className="mb-6 bg-gradient-to-r from-blue-900/40 to-slate-800/40 border border-blue-700/50 rounded-xl px-6 py-5 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-lg">📑</span>
+            <h2 className="text-white font-semibold">Full Platform Report — PDF</h2>
+            <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30">
+              Complete
+            </span>
+          </div>
+          <p className="text-slate-400 text-sm">
+            One PDF with all sections — cover page, design methods, architectures, tools, and
+            evaluations with summary tables.
+          </p>
+        </div>
+        <button
+          onClick={handleFullReport}
+          disabled={fullLoading}
+          className="shrink-0 flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium text-sm rounded-lg transition-colors"
+        >
+          {fullLoading ? (
+            <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+            </svg>
+          ) : "📥"}
+          Download Full Report
+        </button>
+      </div>
+
+      {/* Section cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+        {sections.map((s) => (
+          <ExportCard
+            key={s.key}
+            {...s}
+            pdfLoading={pdfLoading[s.key]}
+          />
         ))}
       </div>
 
-      {/* Info */}
-      <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
-        <h4 className="text-sm font-medium text-gray-300 mb-2">About the Export Formats</h4>
-        <div className="grid grid-cols-2 gap-4 text-xs text-gray-400">
+      {/* Format descriptions */}
+      <div className="bg-slate-800/30 border border-slate-700/50 rounded-xl p-5">
+        <h3 className="text-white font-semibold text-sm mb-3">About Export Formats</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
           <div>
-            <p className="font-medium text-gray-300 mb-1">📄 JSON</p>
-            <p>Full structured data including all fields and metadata. Suitable for programmatic processing, API integration, and research analysis.</p>
+            <div className="flex items-center gap-2 mb-1">
+              <span>📄</span>
+              <span className="font-medium text-slate-200">JSON</span>
+            </div>
+            <p className="text-slate-400 text-xs">
+              Full structured data including all fields and metadata. Suitable for programmatic
+              processing and API integration.
+            </p>
           </div>
           <div>
-            <p className="font-medium text-gray-300 mb-1">📊 CSV</p>
-            <p>Flat tabular format compatible with Excel, Google Sheets, R, and Python pandas. Array fields (tags, platforms) are pipe-separated.</p>
+            <div className="flex items-center gap-2 mb-1">
+              <span>📊</span>
+              <span className="font-medium text-slate-200">CSV</span>
+            </div>
+            <p className="text-slate-400 text-xs">
+              Flat tabular format compatible with Excel, Google Sheets, R, and Python pandas.
+              Array fields are pipe-separated.
+            </p>
+          </div>
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span>📋</span>
+              <span className="font-medium text-slate-200">PDF</span>
+            </div>
+            <p className="text-slate-400 text-xs">
+              Formatted report with cover page, summary tables, and metadata. Suitable for
+              academic submission and stakeholder briefings.
+            </p>
           </div>
         </div>
       </div>
