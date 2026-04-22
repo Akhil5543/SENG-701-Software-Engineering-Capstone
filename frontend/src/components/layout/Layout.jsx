@@ -7,6 +7,7 @@ const NAV = [
   { to: "/architectures", label: "Architectures", icon: "🏗️" },
   { to: "/tools", label: "Tools", icon: "🔧" },
   { to: "/compare", label: "Compare", icon: "⚖️" },
+  { to: "/tool-compare", label: "Tool Compare", icon: "🔀" },
   { to: "/export", label: "Export Data", icon: "📥" },
   { to: "/admin", label: "Admin", icon: "⚙️" },
 ];
