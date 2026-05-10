@@ -5,6 +5,7 @@ import { Star, ArrowRight, ArrowLeft, ExternalLink, Monitor, MessageSquare } fro
 import { toolsApi, evaluationsApi } from '../utils/api'
 import { SearchBar, FilterChip, LoadingSpinner, EmptyState, SectionHeader, Tag } from '../components/layout/Shared'
 import EvaluationForm from '../components/evaluation/EvaluationForm'
+import AnnotationSection from '../components/AnnotationSection'
 
 const LICENSES = ['All', 'free', 'freemium', 'commercial', 'open-source', 'open-standard']
 
@@ -184,6 +185,7 @@ export function ToolDetail() {
           </div>
         )}
       </div>
+    <AnnotationSection entityType="tool" entityId={tool?.id} />
     </div>
   )
 }

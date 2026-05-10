@@ -6,6 +6,7 @@ import { architecturesApi, evaluationsApi } from '../utils/api'
 import { SearchBar, FilterChip, LoadingSpinner, EmptyState, SectionHeader, Tag, ScoreBar } from '../components/layout/Shared'
 import MermaidDiagram from '../components/demo/MermaidDiagram'
 import EvaluationForm from '../components/evaluation/EvaluationForm'
+import AnnotationSection from '../components/AnnotationSection'
 
 const STYLES = ['All', 'layered', 'microservices', 'event-driven', 'client-server', 'serverless']
 
@@ -168,6 +169,7 @@ export function ArchitectureDetail() {
           </div>
         )}
       </div>
+      <AnnotationSection entityType="architecture" entityId={arch?.id} />
     </div>
   )
 }

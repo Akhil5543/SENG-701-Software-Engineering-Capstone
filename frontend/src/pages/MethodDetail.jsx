@@ -6,6 +6,7 @@ import { methodsApi, evaluationsApi } from '../utils/api'
 import { LoadingSpinner, Tag, ScoreBar } from '../components/layout/Shared'
 import MermaidDiagram from '../components/demo/MermaidDiagram'
 import EvaluationForm from '../components/evaluation/EvaluationForm'
+import AnnotationSection from '../components/AnnotationSection'
 
 export default function MethodDetail() {
   const { slug } = useParams()
@@ -139,6 +140,7 @@ export default function MethodDetail() {
           </div>
         )}
       </div>
+      <AnnotationSection entityType="method" entityId={method?.id} />
     </div>
   )
 }
