@@ -140,7 +140,7 @@ function MethodForm({ onSuccess }) {
       onSuccess("Design method added successfully!");
       setForm({ name: "", category: "", description: "", diagram_example: "", tags: [], use_cases: "", case_study: "", academic_standard: false });
     } catch (e) {
-      setError(e.response?.data?.detail || "Failed to create entry. Check for duplicate slug.");
+      const detail = e.response?.data?.detail; setError(typeof detail === "string" ? detail : Array.isArray(detail) ? detail.map(d => d.msg).join(", ") : "Failed to create entry. Check for duplicate slug.");
     } finally {
       setLoading(false);
     }
@@ -197,11 +197,12 @@ function ArchitectureForm({ onSuccess }) {
         scalability_score: parseFloat(form.scalability_score),
         maintainability_score: parseFloat(form.maintainability_score),
         complexity_score: parseFloat(form.complexity_score),
+        use_cases: form.use_cases ? form.use_cases.split(",").map(s => s.trim()).filter(Boolean) : [],
       });
       onSuccess("Architecture added successfully!");
       setForm({ name: "", style: "", description: "", diagram_example: "", strengths: [], weaknesses: [], scalability_score: 5, maintainability_score: 5, complexity_score: 5, use_cases: "" });
     } catch (e) {
-      setError(e.response?.data?.detail || "Failed to create entry.");
+      const detail = e.response?.data?.detail; setError(typeof detail === "string" ? detail : Array.isArray(detail) ? detail.map(d => d.msg).join(", ") : "Failed to create entry.");
     } finally {
       setLoading(false);
     }
@@ -244,7 +245,7 @@ function ArchitectureForm({ onSuccess }) {
 function ToolForm({ onSuccess }) {
   const [form, setForm] = useState({
     name: "", vendor: "", description: "", license_type: "",
-    cost_info: "", platforms: [], supported_methods: [], notations: [],
+    cost_info: "", website_url: "", platforms: [], supported_methods: [], notations: [],
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -262,9 +263,9 @@ function ToolForm({ onSuccess }) {
       const slug = form.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
       await toolsApi.create({ ...form, slug });
       onSuccess("Tool added successfully!");
-      setForm({ name: "", vendor: "", description: "", license_type: "", cost_info: "", platforms: [], supported_methods: [], notations: [] });
+      setForm({ name: "", vendor: "", description: "", license_type: "", cost_info: "", website_url: "", platforms: [], supported_methods: [], notations: [] });
     } catch (e) {
-      setError(e.response?.data?.detail || "Failed to create entry.");
+      const detail = e.response?.data?.detail; setError(typeof detail === "string" ? detail : Array.isArray(detail) ? detail.map(d => d.msg).join(", ") : "Failed to create entry.");
     } finally {
       setLoading(false);
     }
@@ -280,6 +281,7 @@ function ToolForm({ onSuccess }) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <SelectField label="License Type" value={form.license_type} onChange={set("license_type")} options={LICENSE_TYPES} required />
         <Field label="Cost Info" value={form.cost_info} onChange={set("cost_info")} placeholder="Free | $9/mo | Enterprise" />
+      <Field label="Website URL" value={form.website_url} onChange={set("website_url")} placeholder="https://example.com" />
       </div>
       <CheckboxGroup label="Platforms" options={PLATFORMS} value={form.platforms} onChange={set("platforms")} />
       <TagInput label="Supported Methods" value={form.supported_methods} onChange={set("supported_methods")} placeholder="e.g. UML Class" />
