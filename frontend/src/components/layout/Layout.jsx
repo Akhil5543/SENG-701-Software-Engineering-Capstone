@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 
 const NAV = [
   { to: "/", label: "Dashboard", icon: "📊", exact: true },
@@ -33,6 +33,42 @@ function NavItem({ to, label, icon, exact }) {
 
 export default function Layout({ children }) {
   const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
+  const isLoggedIn = !!localStorage.getItem("admin_token");
+
+  function handleLogout() {
+    localStorage.removeItem("admin_token");
+    navigate("/");
+  }
+
+  const SidebarBottom = () => (
+    <div className="pt-4 border-t border-gray-700 flex flex-col gap-1">
+      {isLoggedIn && (
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-2 px-3 py-2 text-xs text-red-400 hover:text-red-300 rounded-lg hover:bg-gray-700 w-full text-left"
+        >
+          <span>🔓</span> Logout Admin
+        </button>
+      )}
+      <a
+        href="https://swdesign-backend.onrender.com/docs"
+        target="_blank"
+        rel="noreferrer"
+        className="flex items-center gap-2 px-3 py-2 text-xs text-gray-500 hover:text-gray-300 rounded-lg hover:bg-gray-700"
+      >
+        <span>📖</span> API Docs
+      </a>
+      <a
+        href="https://github.com/Akhil5543/SENG-701-Software-Engineering-Capstone"
+        target="_blank"
+        rel="noreferrer"
+        className="flex items-center gap-2 px-3 py-2 text-xs text-gray-500 hover:text-gray-300 rounded-lg hover:bg-gray-700"
+      >
+        <span>🐙</span> GitHub
+      </a>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-gray-900 flex">
@@ -47,24 +83,7 @@ export default function Layout({ children }) {
             <NavItem key={n.to} {...n} />
           ))}
         </nav>
-        <div className="pt-4 border-t border-gray-700">
-          <a
-            href="https://swdesign-backend.onrender.com/docs"
-            target="_blank"
-            rel="noreferrer"
-            className="flex items-center gap-2 px-3 py-2 text-xs text-gray-500 hover:text-gray-300 rounded-lg hover:bg-gray-700"
-          >
-            <span>📖</span> API Docs
-          </a>
-          <a
-            href="https://github.com/Akhil5543/SENG-701-Software-Engineering-Capstone"
-            target="_blank"
-            rel="noreferrer"
-            className="flex items-center gap-2 px-3 py-2 text-xs text-gray-500 hover:text-gray-300 rounded-lg hover:bg-gray-700"
-          >
-            <span>🐙</span> GitHub
-          </a>
-        </div>
+        <SidebarBottom />
       </aside>
 
       {/* Mobile header */}
@@ -83,6 +102,14 @@ export default function Layout({ children }) {
               <NavItem key={n.to} {...n} />
             ))}
           </nav>
+          {isLoggedIn && (
+            <button
+              onClick={handleLogout}
+              className="mt-2 flex items-center gap-2 px-3 py-2 text-xs text-red-400 hover:text-red-300 rounded-lg hover:bg-gray-700 w-full"
+            >
+              <span>🔓</span> Logout Admin
+            </button>
+          )}
         </div>
       )}
 
