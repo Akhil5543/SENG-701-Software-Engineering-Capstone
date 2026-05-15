@@ -199,3 +199,16 @@ docker logs swdesign_frontend -f
 - [x] **Alpha** — Core catalog (browse, search, filter, diagrams, compare, evaluate)
 - [x] **Beta** — Export (JSON/CSV/PDF), Admin Panel, Tool Diagram Comparison
 - [x] **Final** — JWT Authentication, Collaborative Annotations, Catalog expanded to 42 entries
+
+---
+
+## Admin Credentials
+
+| Field | Value |
+|---|---|
+| URL (local) | http://localhost:5173/admin-login |
+| URL (live) | https://swdesign-frontend.onrender.com/admin-login |
+| Username | `admin` |
+| Password | `admin123` |
+
+> **Note:** These are prototype credentials. Replace with a secure authentication system before any production use beyond this academic deployment.
