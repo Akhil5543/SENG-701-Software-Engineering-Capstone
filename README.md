@@ -1,37 +1,52 @@
-<<<<<<< HEAD
-# Software Design Tool — SENG 701 Capstone
+# Software Design Tool Platform — SENG 701 Capstone
 
-A repository, demonstration, and evaluation platform for software design and architecture methods and tools.
+A web-based platform for surveying, demonstrating, and evaluating software design methods, architecture styles, and modeling tools.
 
-**Stack:** React + FastAPI + PostgreSQL + Docker
+**Student:** Akhil Reddy Gangula | **Course:** SENG 701 – Software Engineering Capstone | **UMBC Spring 2026**
 
----
-
-## Prerequisites (Windows)
-
-Install these first:
-1. **Docker Desktop** → https://www.docker.com/products/docker-desktop/
-2. **Git** → https://git-scm.com/download/win
-3. **VS Code** (recommended) → https://code.visualstudio.com/
+**Live Application:** https://swdesign-frontend.onrender.com  
+**API Documentation:** https://swdesign-backend.onrender.com/docs
 
 ---
 
-## Quick Start (3 commands)
+## Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | React.js 18, Vite 5, Tailwind CSS 3, Mermaid.js, Recharts |
+| Backend | Python 3.11, FastAPI 0.111, SQLAlchemy 2.0, Pydantic v2, PyJWT |
+| Database | PostgreSQL 15 |
+| Deployment | Docker Compose (local), Render.com (production) |
+
+---
+
+## Quick Start (Local Development)
+
+### Prerequisites
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+- [Git](https://git-scm.com/download/win)
+
+### Run Locally
 
 ```bash
-# 1. Clone your repo (after pushing to GitHub)
-git clone https://github.com/YOUR_USERNAME/YOUR_REPO.git
-cd YOUR_REPO
+# 1. Clone the repository
+git clone https://github.com/Akhil5543/SENG-701-Software-Engineering-Capstone.git
+cd SENG-701-Software-Engineering-Capstone
 
-# 2. Start everything (DB + backend + frontend)
+# 2. Create frontend environment file
+echo VITE_API_URL=http://localhost:8000 > frontend/.env
+
+# 3. Build and start all 3 services
 docker-compose up --build
-
-# 3. Open the app
-# Frontend: http://localhost:5173
-# API docs:  http://localhost:8000/docs
 ```
 
-The database is automatically seeded with design methods, architectures, and tools on first run.
+| Service | URL |
+|---|---|
+| Frontend | http://localhost:5173 |
+| Backend API | http://localhost:8000 |
+| API Docs (Swagger) | http://localhost:8000/docs |
+
+The database is automatically seeded with 35 base catalog entries on first run.
 
 ---
 
@@ -41,23 +56,45 @@ The database is automatically seeded with design methods, architectures, and too
 swdesign/
 ├── backend/
 │   ├── app/
-│   │   ├── api/           # FastAPI route handlers
-│   │   │   ├── methods.py
-│   │   │   ├── architectures.py
-│   │   │   ├── tools.py
-│   │   │   └── evaluations.py
-│   │   ├── core/          # Config, DB session
-│   │   ├── models/        # SQLAlchemy models
-│   │   ├── schemas/       # Pydantic schemas
-│   │   ├── main.py        # App entry point
-│   │   └── seed.py        # Initial data seeding
+│   │   ├── api/
+│   │   │   ├── methods.py          # Design methods CRUD
+│   │   │   ├── architectures.py    # Architectures CRUD
+│   │   │   ├── tools.py            # Tools CRUD
+│   │   │   ├── evaluations.py      # Community evaluations
+│   │   │   ├── annotations.py      # Community annotations (Final)
+│   │   │   └── auth.py             # JWT authentication (Final)
+│   │   ├── core/
+│   │   │   ├── database.py         # SQLAlchemy engine + session
+│   │   │   └── config.py           # Pydantic settings
+│   │   ├── models/
+│   │   │   └── models.py           # 5 SQLAlchemy ORM models
+│   │   ├── schemas/
+│   │   │   └── schemas.py          # 14 Pydantic v2 schemas
+│   │   ├── main.py                 # FastAPI app + routers + startup
+│   │   └── seed.py                 # 35 base catalog entries
 │   ├── requirements.txt
 │   └── Dockerfile
 ├── frontend/
 │   ├── src/
-│   │   ├── components/    # Reusable UI components
-│   │   ├── pages/         # Route-level pages
-│   │   └── utils/         # API client
+│   │   ├── pages/
+│   │   │   ├── Dashboard.jsx
+│   │   │   ├── MethodsPage.jsx / MethodDetail.jsx
+│   │   │   ├── ArchitecturesPage.jsx
+│   │   │   ├── ToolsPage.jsx
+│   │   │   ├── ComparePage.jsx
+│   │   │   ├── ToolComparePage.jsx
+│   │   │   ├── ExportPage.jsx
+│   │   │   ├── AdminPage.jsx
+│   │   │   └── AdminLoginPage.jsx  # (Final)
+│   │   ├── components/
+│   │   │   ├── layout/Layout.jsx
+│   │   │   ├── MermaidDiagram.jsx
+│   │   │   ├── EvaluationForm.jsx
+│   │   │   ├── AnnotationSection.jsx  # (Final)
+│   │   │   └── ProtectedRoute.jsx     # (Final)
+│   │   └── utils/
+│   │       ├── api.js              # Axios API client
+│   │       └── pdfExport.js        # jsPDF export
 │   ├── package.json
 │   └── Dockerfile
 └── docker-compose.yml
@@ -65,24 +102,65 @@ swdesign/
 
 ---
 
-## API Endpoints
+## API Endpoints (21 Total)
 
 | Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/v1/methods/` | List design methods (supports `?search=&category=`) |
-| GET | `/api/v1/methods/{slug}` | Get method detail + avg rating |
-| POST | `/api/v1/methods/` | Create new method |
-| GET | `/api/v1/architectures/` | List architectures |
-| GET | `/api/v1/architectures/compare?ids=1,2,3` | Compare architectures |
-| GET | `/api/v1/tools/` | List tools (supports `?license_type=`) |
-| POST | `/api/v1/evaluations/` | Submit evaluation/review |
-| GET | `/api/v1/stats` | Platform stats |
-
-Full interactive docs at **http://localhost:8000/docs**
+|---|---|---|
+| GET | `/api/v1/methods/` | List methods — supports `?search=` and `?category=` |
+| GET | `/api/v1/methods/{slug}` | Method detail with avg rating |
+| POST | `/api/v1/methods/` | Create method |
+| PUT | `/api/v1/methods/{slug}` | Update method |
+| DELETE | `/api/v1/methods/{slug}` | Delete method |
+| GET | `/api/v1/architectures/` | List architectures — supports `?search=` and `?style=` |
+| GET | `/api/v1/architectures/{slug}` | Architecture detail with avg rating |
+| POST | `/api/v1/architectures/` | Create architecture |
+| PUT | `/api/v1/architectures/{slug}` | Update architecture |
+| DELETE | `/api/v1/architectures/{slug}` | Delete architecture |
+| GET | `/api/v1/tools/` | List tools — supports `?search=` and `?license_type=` |
+| GET | `/api/v1/tools/{slug}` | Tool detail with avg rating |
+| POST | `/api/v1/tools/` | Create tool |
+| PUT | `/api/v1/tools/{slug}` | Update tool |
+| DELETE | `/api/v1/tools/{slug}` | Delete tool |
+| POST | `/api/v1/evaluations/` | Submit evaluation (6 criteria) |
+| GET | `/api/v1/evaluations/` | List evaluations — filter by entity ID |
+| POST | `/api/v1/annotations/` | Submit annotation comment |
+| GET | `/api/v1/annotations/{type}/{id}` | Get annotations for entity |
+| POST | `/api/v1/auth/login` | Admin JWT login |
+| GET | `/api/v1/stats` | Platform statistics |
 
 ---
 
-## Development Workflow
+## Pages
+
+| Route | Description |
+|---|---|
+| `/` | Dashboard — statistics and navigation |
+| `/methods` | Browse and search design methods |
+| `/methods/:slug` | Method detail — diagram, use cases, evaluations, annotations |
+| `/architectures` | Browse architecture styles with score bars |
+| `/architectures/:slug` | Architecture detail |
+| `/compare` | Radar chart comparison of up to 4 architectures |
+| `/tools` | Browse tools catalog |
+| `/tools/:slug` | Tool detail — evaluations, annotations |
+| `/tool-compare` | Side-by-side tool diagram comparison |
+| `/export` | Export catalog data as JSON, CSV, or PDF |
+| `/admin-login` | JWT authentication for admin access |
+| `/admin` | Protected admin panel — add catalog entries |
+
+---
+
+## Catalog (42 Entries)
+
+| Section | Count |
+|---|---|
+| Design Methods | 12 |
+| Architecture Styles | 13 |
+| Modeling Tools | 17 |
+| **Total** | **42** |
+
+---
+
+## Useful Commands
 
 ```bash
 # Start services
@@ -91,79 +169,33 @@ docker-compose up
 # Stop services
 docker-compose down
 
-# Reset database (re-seeds automatically)
-docker-compose down -v
-docker-compose up --build
+# Reset database (re-seeds automatically on restart)
+docker-compose down -v && docker-compose up --build
 
 # View backend logs
 docker logs swdesign_backend -f
 
-# Run backend directly (outside Docker, needs local Python + PostgreSQL)
-cd backend
-pip install -r requirements.txt
-uvicorn app.main:app --reload
+# View frontend logs
+docker logs swdesign_frontend -f
 ```
 
 ---
 
-## Pages
+## Code Statistics (Final Checkpoint)
 
-| Route | Description |
-|-------|-------------|
-| `/` | Dashboard with stats and recent entries |
-| `/methods` | Browse & search design methods |
-| `/methods/:slug` | Method detail with Mermaid diagram demo + reviews |
-| `/architectures` | Browse architecture styles with score bars |
-| `/architectures/:slug` | Architecture detail with strengths/weaknesses |
-| `/tools` | Browse tools with license/platform info |
-| `/tools/:slug` | Tool detail with evaluation form |
-| `/compare` | Side-by-side radar chart comparison |
+| Metric | Value |
+|---|---|
+| Total LOC | 5,343 |
+| Frontend LOC | 3,543 (21 files) |
+| Backend LOC | 1,800 (19 files) |
+| GitHub Commits | 22+ |
+| API Endpoints | 21 |
+| ORM Models | 5 |
 
 ---
 
-## Alpha Checkpoint Targets (Week 3)
+## Checkpoint Status
 
-- [x] Repository — Design Methods (R1)
-- [x] Repository — Architecture Styles (R2)  
-- [x] Repository — Tools Catalog (R3)
-- [x] Search & Filter Dashboard (R4)
-- [x] Interactive Diagram Demonstrations (R5)
-- [x] Rating & Review System (R7)
-- [x] Aggregate Evaluation Scores (R8)
-- [ ] Side-by-Side Diagram Compare (R6) — Beta
-- [ ] Export PDF/CSV/JSON (R10) — Beta
-- [ ] Admin Data Entry Form (R11) — Beta
-- [ ] Collaborative Annotations (R12) — Final
-
----
-
-## Git Commit Convention
-
-```
-feat: add evaluation form to method detail page
-fix: correct mermaid diagram rendering on Safari
-docs: update README with deployment instructions
-chore: add seed data for microservices architecture
-```
-
-Commit frequently — at least once per working session.
-=======
-
-# SENG 701 – Software Engineering Capstone
-
-This repository contains work for the SENG 701 Software Engineering Capstone course.
-
-## Project Status
-The capstone project proposal is currently under review. The final project scope and sponsor will be confirmed upon proposal approval.
-
-## Planned Focus
-The project will involve the design and development of a software-based system that demonstrates core software engineering principles, including requirements analysis, system design, implementation, and evaluation.
-
-## Capstone Phases
-- Proposal
-- Alpha
-- Beta
-- Final
-
-This repository will be updated throughout the capstone lifecycle as the project evolves.
->>>>>>> 4c724c0abae7b446b6bd6a07dc53493e0657a1a7
+- [x] **Alpha** — Core catalog (browse, search, filter, diagrams, compare, evaluate)
+- [x] **Beta** — Export (JSON/CSV/PDF), Admin Panel, Tool Diagram Comparison
+- [x] **Final** — JWT Authentication, Collaborative Annotations, Catalog expanded to 42 entries
